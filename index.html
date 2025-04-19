@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Registro Hospitalario</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --accent: #4895ef;
+      --danger: #f72585;
+      --success: #4cc9f0;
+      --whatsapp: #25D366;
+      --telegram: #0088cc;
+      --email: #EA4335;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --card-bg: #ffffff;
+      --border: #dee2e6;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --radius: 8px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px 0;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .panel {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .header-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .header-line {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .header-line:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.25);
+    }
+
+    .header-line-1 {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .header-line-2 {
+      font-size: 0.95rem;
+    }
+
+    .header-line-3 {
+      font-size: 0.85rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.25);
+    }
+
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .logo-upload-container {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .logo-upload-box {
+      flex: 1;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .logo-upload-box:hover {
+      border-color: var(--accent);
+      background-color: rgba(72, 149, 239, 0.05);
+    }
+
+    .logo-preview {
+      max-width: 80px;
+      max-height: 80px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #3aa8d4;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-whatsapp {
+      background: var(--whatsapp);
+      color: white;
+    }
+
+    .btn-telegram {
+      background: var(--telegram);
+      color: white;
+    }
+
+    .btn-email {
+      background: var(--email);
+      color: white;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 0;
+      margin-bottom: 25px;
+    }
+
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .pdf-table th {
+      background: var(--primary);
+      color: white;
+      padding: 8px 6px;
+      text-align: center;
+      font-weight: 600;
+      border: 1px solid #d0d0d0;
+    }
+
+    .pdf-table td {
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #e0e0e0;
+      vertical-align: middle;
+    }
+
+    .pdf-table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .pdf-table tr:hover {
+      background-color: #f0f5ff;
+    }
+
+    .action-cell {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .action-btn {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .edit-btn {
+      background: var(--accent);
+      color: white;
+    }
+
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: var(--success);
+    }
+
+    .notification.error {
+      background: var(--danger);
+    }
+
+    .share-menu {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .share-options {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 8px;
+      z-index: 100;
+      min-width: 160px;
+    }
+    
+    .share-menu:hover .share-options {
+      display: block;
+    }
+    
+    .share-option {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 2px 0;
+      font-size: 0.85rem;
+    }
+    
+    .share-option:hover {
+      background: #f5f5f5;
+    }
+    
+    .share-option i {
+      margin-right: 8px;
+      width: 18px;
+      text-align: center;
+    }
+    
+    .whatsapp-option { color: var(--whatsapp); }
+    .telegram-option { color: var(--telegram); }
+    .email-option { color: var(--email); }
+
+    .empty-table {
+      text-align: center;
+      padding: 20px;
+      color: var(--gray);
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .span-2 {
+        grid-column: span 1;
+      }
+      
+      .logo-upload-container {
+        flex-direction: column;
+      }
+      
+      .btn-container {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .share-options {
+        left: 0;
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Registro de Pacientes</h1>
+      <p>Sistema de gestión hospitalaria</p>
+    </header>
+
+    <div class="panel">
+      <div class="header-lines">
+        <input type="text" id="header-line-1" class="header-line header-line-1" placeholder="Línea 1 (ej: REPÚBLICA BOLIVARIANA DE VENEZUELA)">
+        <input type="text" id="header-line-2" class="header-line header-line-2" placeholder="Línea 2 (ej: HOSPITAL GENERAL)">
+        <input type="text" id="header-line-3" class="header-line header-line-3" placeholder="Línea 3 (ej: POSTGRADO DE PEDIATRÍA Y PUERICULTURA)">
+        <input type="text" id="header-line-4" class="header-line header-line-3" placeholder="Línea 4 (ej: SAN CRISTOBAL - EDO-TÁCHIRA)">
+      </div>
+      
+      <div class="logo-upload-container">
+        <div class="logo-upload-box" onclick="document.getElementById('left-logo').click()">
+          <i class="fas fa-image fa-2x"></i>
+          <p>Logo Izquierdo</p>
+          <input type="file" id="left-logo" accept="image/*" style="display:none">
+          <img id="left-logo-preview" class="logo-preview">
+        </div>
+        
+        <div class="logo-upload-box" onclick="document.getElementById('right-logo').click()">
+          <i class="fas fa-image fa-2x"></i>
+          <p>Logo Derecho</p>
+          <input type="file" id="right-logo" accept="image/*" style="display:none">
+          <img id="right-logo-preview" class="logo-preview">
+        </div>
+      </div>
+    </div>
+
+    <form id="patient-form" class="panel">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="location">Ubicación</label>
+          <input type="text" id="location" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="bed">Cama</label>
+          <input type="text" id="bed" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="record">HC</label>
+          <input type="text" id="record" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="patient">Paciente</label>
+          <input type="text" id="patient" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="age">Edad</label>
+          <input type="number" id="age" class="form-control" min="0" max="120" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="admission">Fecha Ingreso</label>
+          <input type="datetime-local" id="admission" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="dh">DH</label>
+          <input type="text" id="dh" class="form-control" required>
+        </div>
+        
+        <div class="form-group span-2">
+          <label for="diagnosis">Diagnóstico</label>
+          <textarea id="diagnosis" class="form-control" required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="attachment">Adjunto</label>
+          <input type="text" id="attachment" class="form-control" required>
+        </div>
+        
+        <div class="form-group span-2">
+          <label for="plan">Plan</label>
+          <textarea id="plan" class="form-control" required></textarea>
+        </div>
+      </div>
+    </form>
+
+    <div class="btn-container">
+      <button id="add-btn" class="btn btn-success">
+        <i class="fas fa-plus"></i> Agregar
+      </button>
+      <button id="pdf-btn" class="btn btn-primary">
+        <i class="fas fa-file-pdf"></i> PDF
+      </button>
+      <button id="preview-btn" class="btn btn-primary">
+        <i class="fas fa-eye"></i> Vista Previa
+      </button>
+      
+      <div class="share-menu">
+        <button class="btn btn-primary">
+          <i class="fas fa-share-alt"></i> Compartir
+        </button>
+        <div class="share-options">
+          <div class="share-option whatsapp-option" id="share-whatsapp">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </div>
+          <div class="share-option telegram-option" id="share-telegram">
+            <i class="fab fa-telegram"></i> Telegram
+          </div>
+          <div class="share-option email-option" id="share-email">
+            <i class="fas fa-envelope"></i> Correo
+          </div>
+        </div>
+      </div>
+      
+      <button id="clear-btn" class="btn btn-danger">
+        <i class="fas fa-trash"></i> Limpiar
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>Ubicación</th>
+            <th>Cama</th>
+            <th>HC</th>
+            <th>Paciente</th>
+            <th>Edad</th>
+            <th>Ingreso</th>
+            <th>DH</th>
+            <th>Diagnóstico</th>
+            <th>Adjunto</th>
+            <th>Plan</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="patients-table">
+          <!-- Datos dinámicos -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script>
+    // Configuración
+    const CONFIG_KEY = 'hospitalConfig';
+    const PATIENTS_KEY = 'patientsData';
+    
+    // URLs de imágenes predeterminadas (PNG válidos)
+    const DEFAULT_LEFT_LOGO_URL = 'https://raw.githubusercontent.com/Ferchoft/revistadepacientesivss/refs/heads/main/Imagen1.png';
+    const DEFAULT_RIGHT_LOGO_URL = 'https://raw.githubusercontent.com/Ferchoft/revistadepacientesivss/refs/heads/main/Imagen2.png';
+    
+    // Estado inicial con URLs externas para las imágenes
+    let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
+      headerLine1: 'REPÚBLICA BOLIVARIANA DE VENEZUELA',
+      headerLine2: 'HOSPITAL IVSS "DR. PATROCINIO PEÑUELA RUIZ"',
+      headerLine3: 'POSTGRADO DE PEDIATRÍA Y PUERICULTURA',
+      headerLine4: 'SAN CRISTÓBAL, ESTADO TÁCHIRA',
+      leftLogo: DEFAULT_LEFT_LOGO_URL,
+      rightLogo: DEFAULT_RIGHT_LOGO_URL
+    };
+    
+    let patients = JSON.parse(localStorage.getItem(PATIENTS_KEY)) || [];
+    let editingIndex = null;
+
+    // Elementos DOM
+    const headerLine1 = document.getElementById('header-line-1');
+    const headerLine2 = document.getElementById('header-line-2');
+    const headerLine3 = document.getElementById('header-line-3');
+    const headerLine4 = document.getElementById('header-line-4');
+    const leftLogoInput = document.getElementById('left-logo');
+    const rightLogoInput = document.getElementById('right-logo');
+    const leftLogoPreview = document.getElementById('left-logo-preview');
+    const rightLogoPreview = document.getElementById('right-logo-preview');
+    const patientForm = document.getElementById('patient-form');
+    const patientsTable = document.getElementById('patients-table');
+    const addBtn = document.getElementById('add-btn');
+    const pdfBtn = document.getElementById('pdf-btn');
+    const previewBtn = document.getElementById('preview-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const notification = document.getElementById('notification');
+
+    // Inicialización
+    function init() {
+      // Si no existe config, crearlo con los valores predeterminados
+      if (!localStorage.getItem(CONFIG_KEY)) {
+        saveConfig();
+      } else {
+        // Si existe config, pero no tiene headerLine4, agregarlo con valor predeterminado
+        config = JSON.parse(localStorage.getItem(CONFIG_KEY));
+        if (!config.headerLine4) {
+          config.headerLine4 = 'SAN CRISTÓBAL, ESTADO TÁCHIRA';
+          saveConfig();
+        }
+      }
+
+      headerLine1.value = config.headerLine1;
+      headerLine2.value = config.headerLine2;
+      headerLine3.value = config.headerLine3;
+      headerLine4.value = config.headerLine4;
+      
+      // Cargar imágenes predeterminadas
+      if (config.leftLogo) {
+        leftLogoPreview.src = config.leftLogo;
+        leftLogoPreview.style.display = 'block';
+      }
+      
+      if (config.rightLogo) {
+        rightLogoPreview.src = config.rightLogo;
+        rightLogoPreview.style.display = 'block';
+      }
+      
+      // Establecer fecha actual
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      now.setMinutes(now.getMinutes() - offset);
+      document.getElementById('admission').value = now.toISOString().slice(0, 16);
+      
+      renderTable();
+      
+      // Event listeners para menú compartir
+      document.getElementById('share-whatsapp').addEventListener('click', () => sharePDF('whatsapp'));
+      document.getElementById('share-telegram').addEventListener('click', () => sharePDF('telegram'));
+      document.getElementById('share-email').addEventListener('click', () => sharePDF('email'));
+    }
+
+    // Guardar configuración
+    function saveConfig() {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      showNotification('Configuración guardada');
+    }
+
+    // Guardar pacientes
+    function savePatients() {
+      localStorage.setItem(PATIENTS_KEY, JSON.stringify(patients));
+      showNotification('Pacientes guardados');
+    }
+
+    // Mostrar notificación
+    function showNotification(message, type = 'success', duration = 3000) {
+      notification.textContent = message;
+      notification.className = `notification ${type} show`;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, duration);
+    }
+
+    // Renderizar tabla
+    function renderTable() {
+      patientsTable.innerHTML = '';
+      
+      if (patients.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 11;
+        cell.className = 'empty-table';
+        cell.textContent = 'No hay pacientes registrados';
+        row.appendChild(cell);
+        patientsTable.appendChild(row);
+        return;
+      }
+      
+      patients.forEach((patient, index) => {
+        const row = document.createElement('tr');
+        
+        ['location', 'bed', 'record', 'patient', 'age', 'admission', 'dh', 'diagnosis', 'attachment', 'plan'].forEach(field => {
+          const cell = document.createElement('td');
+          cell.textContent = patient[field] || '-';
+          cell.style.whiteSpace = 'pre-wrap';
+          row.appendChild(cell);
+        });
+        
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'action-cell';
+        actionsCell.innerHTML = `
+          <button onclick="editPatient(${index})" class="action-btn edit-btn">
+            <i class="fas fa-edit"></i> Editar
+          </button>
+          <button onclick="deletePatient(${index})" class="action-btn delete-btn">
+            <i class="fas fa-trash"></i> Eliminar
+          </button>
+        `;
+        row.appendChild(actionsCell);
+        patientsTable.appendChild(row);
+      });
+    }
+
+    // Obtener datos del formulario
+    function getFormData() {
+      return {
+        location: document.getElementById('location').value.trim(),
+        bed: document.getElementById('bed').value.trim(),
+        record: document.getElementById('record').value.trim(),
+        patient: document.getElementById('patient').value.trim(),
+        age: document.getElementById('age').value.trim(),
+        admission: formatDate(document.getElementById('admission').value),
+        dh: document.getElementById('dh').value.trim(),
+        diagnosis: document.getElementById('diagnosis').value.trim(),
+        attachment: document.getElementById('attachment').value.trim(),
+        plan: document.getElementById('plan').value.trim()
+      };
+    }
+
+    // Formatear fecha
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Cargar imagen
+    function handleImageUpload(input, preview, configKey) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      if (!file.type.match('image.*')) {
+        showNotification('Solo se permiten imágenes', 'error');
+        return;
+      }
+      
+      if (file.size > 2 * 1024 * 1024) {
+        showNotification('La imagen es demasiado grande (máx. 2MB)', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        config[configKey] = e.target.result;
+        saveConfig();
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Generar PDF
+    async function generatePDF() {
+      try {
+        const { jsPDF } = window.jspdf || await loadJsPDF();
+        
+        const doc = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm'
+        });
+        
+        // Configuración del documento
+        const margin = 10;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const centerX = pageWidth / 2;
+        const logoSize = 15;
+        const logoMarginTop = 10;
+        const logoOffset = 80;
+        
+        // Logos - Solo si existen y son válidos
+        try {
+          if (config.leftLogo) {
+            doc.addImage(config.leftLogo, 'PNG', centerX - logoOffset, logoMarginTop, logoSize, logoSize);
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar el logo izquierdo:', e);
+        }
+        
+        try {
+          if (config.rightLogo) {
+            doc.addImage(config.rightLogo, 'PNG', centerX + logoOffset - logoSize, logoMarginTop, logoSize, logoSize);
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar el logo derecho:', e);
+        }
+        
+        // Encabezado
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        
+        doc.setFontSize(12);
+        doc.text(config.headerLine1.toUpperCase(), centerX, logoMarginTop + 5, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.text(config.headerLine2.toUpperCase(), centerX, logoMarginTop + 10, { align: 'center' });
+        
+        doc.setFontSize(8);
+        doc.text(config.headerLine3.toUpperCase(), centerX, logoMarginTop + 15, { align: 'center' });
+        
+        if (config.headerLine4) {
+          doc.text(config.headerLine4.toUpperCase(), centerX, logoMarginTop + 20, { align: 'center' });
+        }
+        
+        // Fecha generación
+        const fechaHora = new Date().toLocaleString('es-ES');
+        doc.setFontSize(7);
+        doc.text(`Generado: ${fechaHora}`, pageWidth - margin - 2, logoMarginTop + 5, { align: 'right' });
+        
+        // Tabla
+        const headers = [
+          'UBICACIÓN', 'CAMA', 'HC', 'PACIENTE', 'EDAD', 
+          'INGRESO', 'DH', 'DIAGNÓSTICO', 'ADJUNTO', 'PLAN'
+        ];
+        
+        const data = patients.map(p => [
+          p.location || '-', 
+          p.bed || '-', 
+          p.record || '-', 
+          p.patient || '-', 
+          p.age || '-',
+          p.admission || '-', 
+          p.dh || '-', 
+          p.diagnosis || '-', 
+          p.attachment || '-', 
+          p.plan || '-'
+        ]);
+        
+        doc.autoTable({
+          head: [headers],
+          body: data,
+          startY: logoMarginTop + 25,
+          margin: { left: margin, right: margin },
+          styles: { 
+            fontSize: 7,
+            cellPadding: 2,
+            overflow: 'linebreak',
+            halign: 'center',
+            valign: 'middle',
+            textColor: [0, 0, 0],
+            cellWidth: 'wrap',
+            lineColor: [200, 200, 200],
+            lineWidth: 0.2
+          },
+          headStyles: { 
+            fillColor: [67, 97, 238],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle',
+            lineWidth: 0.3,
+            lineColor: [100, 100, 100]
+          },
+          bodyStyles: {
+            halign: 'center',
+            valign: 'middle',
+            lineWidth: 0.2
+          },
+          alternateRowStyles: {
+            fillColor: [250, 250, 250]
+          },
+          columnStyles: {
+            0: { cellWidth: 'auto' },
+            1: { cellWidth: 'auto' },
+            2: { cellWidth: 'auto' },
+            3: { cellWidth: 'auto' },
+            4: { cellWidth: 'auto' },
+            5: { cellWidth: 'auto' },
+            6: { cellWidth: 'auto' },
+            7: { cellWidth: 25 },
+            8: { cellWidth: 'auto' },
+            9: { cellWidth: 25 }
+          },
+          didDrawPage: function(data) {
+            // Pie de página
+            doc.setFontSize(7);
+            doc.setTextColor(100);
+            doc.text(`Página ${data.pageNumber}`, centerX, doc.internal.pageSize.getHeight() - 5, { align: 'center' });
+          }
+        });
+        
+        return doc;
+      } catch (error) {
+        console.error('Error al generar PDF:', error);
+        showNotification('Error al generar PDF', 'error');
+        return null;
+      }
+    }
+
+    // Cargar jsPDF dinámicamente si es necesario
+    function loadJsPDF() {
+      return new Promise((resolve, reject) => {
+        if (window.jspdf) return resolve(window.jspdf);
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => resolve(window.jspdf);
+        script.onerror = () => reject(new Error('Error al cargar jsPDF'));
+        document.head.appendChild(script);
+      });
+    }
+
+    // Compartir PDF
+    async function sharePDF(service) {
+      if (patients.length === 0) {
+        showNotification('No hay pacientes para compartir', 'error');
+        return;
+      }
+      
+      const doc = await generatePDF();
+      if (!doc) return;
+      
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const fileName = `pacientes_${new Date().toISOString().slice(0,10)}.pdf`;
+      const message = `Lista de pacientes - ${config.headerLine2}`;
+      
+      // Función para formatear los datos del paciente en el orden solicitado
+      function formatPatientData(p) {
+        return `
+Ubicación: ${p.location || '-'}
+Cama: ${p.bed || '-'}
+HC: ${p.record || '-'}
+Paciente: ${p.patient || '-'}
+Edad: ${p.age || '-'}
+Fecha de ingreso: ${p.admission || '-'}
+DH: ${p.dh || '-'}
+Diagnóstico: ${p.diagnosis || '-'}
+Adjunto: ${p.attachment || '-'}
+Plan: ${p.plan || '-'}
+------------------------------`;
+      }
+      
+      switch(service) {
+        case 'whatsapp':
+          let whatsappMsg = `*${config.headerLine1.toUpperCase()}*\n`;
+          whatsappMsg += `*${config.headerLine2.toUpperCase()}*\n`;
+          whatsappMsg += `*${config.headerLine3.toUpperCase()}*\n`;
+          if (config.headerLine4) {
+            whatsappMsg += `*${config.headerLine4.toUpperCase()}*\n\n`;
+          }
+          whatsappMsg += `*REVISTA DE PACIENTES*\n\n`;
+          
+          patients.forEach((p, i) => {
+            whatsappMsg += `*PACIENTE ${i+1}*\n`;
+            whatsappMsg += formatPatientData(p);
+            whatsappMsg += `\n\n`;
+          });
+          
+          whatsappMsg += `\n*Total pacientes: ${patients.length}*`;
+          window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+          break;
+          
+        case 'telegram':
+          let telegramMsg = `${config.headerLine1.toUpperCase()}\n`;
+          telegramMsg += `${config.headerLine2.toUpperCase()}\n`;
+          telegramMsg += `${config.headerLine3.toUpperCase()}\n`;
+          if (config.headerLine4) {
+            telegramMsg += `${config.headerLine4.toUpperCase()}\n\n`;
+          }
+          telegramMsg += `REVISTA DE PACIENTES\n\n`;
+          
+          patients.forEach((p, i) => {
+            telegramMsg += `PACIENTE ${i+1}\n`;
+            telegramMsg += formatPatientData(p);
+            telegramMsg += `\n\n`;
+          });
+          
+          telegramMsg += `\nTotal pacientes: ${patients.length}`;
+          
+          // Descargar el PDF primero
+          downloadFile(pdfUrl, fileName);
+          
+          // Abrir Telegram con el mensaje formateado
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(pdfUrl)}&text=${encodeURIComponent(telegramMsg)}`, '_blank');
+          break;
+          
+        case 'email':
+          const subject = `Lista de Pacientes - ${config.headerLine2}`;
+          let body = `Adjunto encontrarás la lista de pacientes actualizada.\n\n`;
+          body += `${config.headerLine1}\n${config.headerLine2}\n${config.headerLine3}\n`;
+          if (config.headerLine4) {
+            body += `${config.headerLine4}\n\n`;
+          }
+          body += `DETALLE DE PACIENTES:\n\n`;
+          
+          patients.forEach((p, i) => {
+            body += `PACIENTE ${i+1}\n`;
+            body += formatPatientData(p);
+            body += `\n\n`;
+          });
+          
+          body += `\nTotal pacientes: ${patients.length}`;
+          
+          const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&attachment=${encodeURIComponent(pdfUrl)}`;
+          window.location.href = mailtoLink;
+          break;
+      }
+    }
+
+    // Descargar archivo
+    function downloadFile(url, fileName) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Event Listeners
+    headerLine1.addEventListener('input', function() {
+      config.headerLine1 = this.value;
+      saveConfig();
+    });
+
+    headerLine2.addEventListener('input', function() {
+      config.headerLine2 = this.value;
+      saveConfig();
+    });
+
+    headerLine3.addEventListener('input', function() {
+      config.headerLine3 = this.value;
+      saveConfig();
+    });
+
+    headerLine4.addEventListener('input', function() {
+      config.headerLine4 = this.value;
+      saveConfig();
+    });
+
+    leftLogoInput.addEventListener('change', () => {
+      handleImageUpload(leftLogoInput, leftLogoPreview, 'leftLogo');
+    });
+
+    rightLogoInput.addEventListener('change', () => {
+      handleImageUpload(rightLogoInput, rightLogoPreview, 'rightLogo');
+    });
+
+    addBtn.addEventListener('click', () => {
+      if (!patientForm.checkValidity()) {
+        showNotification('Complete todos los campos', 'error');
+        return patientForm.reportValidity();
+      }
+      
+      const patientData = getFormData();
+      
+      if (editingIndex !== null) {
+        patients[editingIndex] = patientData;
+        editingIndex = null;
+        addBtn.innerHTML = '<i class="fas fa-plus"></i> Agregar';
+        showNotification('Paciente actualizado');
+      } else {
+        patients.unshift(patientData);
+        showNotification('Paciente agregado');
+      }
+      
+      savePatients();
+      renderTable();
+      patientForm.reset();
+      
+      // Restablecer fecha
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      now.setMinutes(now.getMinutes() - offset);
+      document.getElementById('admission').value = now.toISOString().slice(0, 16);
+    });
+
+    pdfBtn.addEventListener('click', async () => {
+      if (patients.length === 0) {
+        showNotification('No hay pacientes para exportar', 'error');
+        return;
+      }
+      
+      const doc = await generatePDF();
+      if (doc) {
+        doc.save(`pacientes_${new Date().toISOString().slice(0,10)}.pdf`);
+        showNotification('PDF descargado correctamente');
+      }
+    });
+
+    previewBtn.addEventListener('click', async () => {
+      if (patients.length === 0) {
+        showNotification('No hay pacientes para previsualizar', 'error');
+        return;
+      }
+      
+      const doc = await generatePDF();
+      if (doc) {
+        const pdfUrl = doc.output('datauristring');
+        const previewWindow = window.open();
+        if (previewWindow) {
+          previewWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Vista Previa PDF</title>
+              <style>
+                body { margin: 0; padding: 0; }
+                iframe { width: 100%; height: 100vh; border: none; }
+              </style>
+            </head>
+            <body>
+              <iframe src="${pdfUrl}"></iframe>
+            </body>
+            </html>
+          `);
+        } else {
+          showNotification('Permite ventanas emergentes para ver la vista previa', 'error');
+        }
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (patients.length === 0) {
+        showNotification('No hay pacientes para eliminar', 'error');
+        return;
+      }
+      
+      if (confirm('¿Eliminar TODOS los pacientes? Esta acción no se puede deshacer.')) {
+        patients = [];
+        savePatients();
+        renderTable();
+        showNotification('Todos los pacientes fueron eliminados');
+      }
+    });
+
+    // Funciones globales
+    window.editPatient = function(index) {
+      const patient = patients[index];
+      
+      document.getElementById('location').value = patient.location;
+      document.getElementById('bed').value = patient.bed;
+      document.getElementById('record').value = patient.record;
+      document.getElementById('patient').value = patient.patient;
+      document.getElementById('age').value = patient.age;
+      document.getElementById('dh').value = patient.dh;
+      document.getElementById('diagnosis').value = patient.diagnosis;
+      document.getElementById('attachment').value = patient.attachment;
+      document.getElementById('plan').value = patient.plan;
+      
+      // Convertir fecha al formato correcto
+      if (patient.admission) {
+        const dateParts = patient.admission.split(/[\s/,:]+/);
+        if (dateParts.length >= 5) {
+          const dateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${dateParts[3]}:${dateParts[4]}`;
+          document.getElementById('admission').value = dateStr;
+        }
+      }
+      
+      editingIndex = index;
+      addBtn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+      
+      patientForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deletePatient = function(index) {
+      if (confirm('¿Eliminar este paciente?')) {
+        patients.splice(index, 1);
+        savePatients();
+        renderTable();
+        showNotification('Paciente eliminado');
+      }
+    };
+
+    // Iniciar aplicación
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
