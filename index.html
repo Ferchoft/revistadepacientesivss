@@ -234,7 +234,6 @@
       color: white;
     }
 
-    /* Estilo de tabla que coincide con el PDF */
     .table-responsive {
       overflow-x: auto;
       background: white;
@@ -420,7 +419,8 @@
       <div class="header-lines">
         <input type="text" id="header-line-1" class="header-line header-line-1" placeholder="Línea 1 (ej: REPÚBLICA BOLIVARIANA DE VENEZUELA)">
         <input type="text" id="header-line-2" class="header-line header-line-2" placeholder="Línea 2 (ej: HOSPITAL GENERAL)">
-        <input type="text" id="header-line-3" class="header-line header-line-3" placeholder="Línea 3 (ej: SERVICIO DE PEDIATRÍA)">
+        <input type="text" id="header-line-3" class="header-line header-line-3" placeholder="Línea 3 (ej: POSTGRADO DE PEDIATRÍA Y PUERICULTURA)">
+        <input type="text" id="header-line-4" class="header-line header-line-3" placeholder="Línea 4 (ej: SAN CRISTOBAL - EDO-TÁCHIRA)">
       </div>
       
       <div class="logo-upload-container">
@@ -558,13 +558,18 @@
     const CONFIG_KEY = 'hospitalConfig';
     const PATIENTS_KEY = 'patientsData';
     
-    // Estado inicial
+    // URLs de imágenes predeterminadas (PNG válidos)
+    const DEFAULT_LEFT_LOGO_URL = 'https://cdn.pixabay.com/photo/2017/03/16/21/18/logo-2150297_640.png';
+    const DEFAULT_RIGHT_LOGO_URL = 'https://cdn.pixabay.com/photo/2016/12/17/15/50/logo-1913689_640.png';
+    
+    // Estado inicial con URLs externas para las imágenes
     let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || {
       headerLine1: 'REPÚBLICA BOLIVARIANA DE VENEZUELA',
-      headerLine2: 'HOSPITAL GENERAL',
-      headerLine3: 'SERVICIO DE PEDIATRÍA',
-      leftLogo: '',
-      rightLogo: ''
+      headerLine2: 'HOSPITAL IVSS "DR. PATROCINIO PEÑUELA RUIZ"',
+      headerLine3: 'POSTGRADO DE PEDIATRÍA Y PUERICULTURA',
+      headerLine4: 'SAN CRISTÓBAL, ESTADO TÁCHIRA',
+      leftLogo: DEFAULT_LEFT_LOGO_URL,
+      rightLogo: DEFAULT_RIGHT_LOGO_URL
     };
     
     let patients = JSON.parse(localStorage.getItem(PATIENTS_KEY)) || [];
@@ -574,6 +579,7 @@
     const headerLine1 = document.getElementById('header-line-1');
     const headerLine2 = document.getElementById('header-line-2');
     const headerLine3 = document.getElementById('header-line-3');
+    const headerLine4 = document.getElementById('header-line-4');
     const leftLogoInput = document.getElementById('left-logo');
     const rightLogoInput = document.getElementById('right-logo');
     const leftLogoPreview = document.getElementById('left-logo-preview');
@@ -588,10 +594,24 @@
 
     // Inicialización
     function init() {
+      // Si no existe config, crearlo con los valores predeterminados
+      if (!localStorage.getItem(CONFIG_KEY)) {
+        saveConfig();
+      } else {
+        // Si existe config, pero no tiene headerLine4, agregarlo con valor predeterminado
+        config = JSON.parse(localStorage.getItem(CONFIG_KEY));
+        if (!config.headerLine4) {
+          config.headerLine4 = 'SAN CRISTÓBAL, ESTADO TÁCHIRA';
+          saveConfig();
+        }
+      }
+
       headerLine1.value = config.headerLine1;
       headerLine2.value = config.headerLine2;
       headerLine3.value = config.headerLine3;
+      headerLine4.value = config.headerLine4;
       
+      // Cargar imágenes predeterminadas
       if (config.leftLogo) {
         leftLogoPreview.src = config.leftLogo;
         leftLogoPreview.style.display = 'block';
@@ -638,7 +658,7 @@
       }, duration);
     }
 
-    // Renderizar tabla (coincide con PDF)
+    // Renderizar tabla
     function renderTable() {
       patientsTable.innerHTML = '';
       
@@ -732,7 +752,7 @@
       reader.readAsDataURL(file);
     }
 
-    // Generar PDF con diseño que coincide con la tabla HTML
+    // Generar PDF
     async function generatePDF() {
       try {
         const { jsPDF } = window.jspdf || await loadJsPDF();
@@ -748,39 +768,48 @@
         const centerX = pageWidth / 2;
         const logoSize = 15;
         const logoMarginTop = 10;
-        const logoOffset = 80; // Ajustado de 35 a 30 para mover los logos un poco más hacia el centro
+        const logoOffset = 80;
         
-        // Logos - Posiciones ajustadas hacia el centro
-        if (config.leftLogo) {
-          doc.addImage(config.leftLogo, 'JPEG', centerX - logoOffset, logoMarginTop, logoSize, logoSize);
+        // Logos - Solo si existen y son válidos
+        try {
+          if (config.leftLogo) {
+            doc.addImage(config.leftLogo, 'PNG', centerX - logoOffset, logoMarginTop, logoSize, logoSize);
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar el logo izquierdo:', e);
         }
         
-        if (config.rightLogo) {
-          doc.addImage(config.rightLogo, 'JPEG', centerX + logoOffset - logoSize, logoMarginTop, logoSize, logoSize);
+        try {
+          if (config.rightLogo) {
+            doc.addImage(config.rightLogo, 'PNG', centerX + logoOffset - logoSize, logoMarginTop, logoSize, logoSize);
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar el logo derecho:', e);
         }
         
-        // Encabezado escalonado
+        // Encabezado
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
         
-        // Línea 1 - Tamaño grande
         doc.setFontSize(12);
         doc.text(config.headerLine1.toUpperCase(), centerX, logoMarginTop + 5, { align: 'center' });
         
-        // Línea 2 - Tamaño mediano
         doc.setFontSize(10);
         doc.text(config.headerLine2.toUpperCase(), centerX, logoMarginTop + 10, { align: 'center' });
         
-        // Línea 3 - Tamaño pequeño
         doc.setFontSize(8);
         doc.text(config.headerLine3.toUpperCase(), centerX, logoMarginTop + 15, { align: 'center' });
+        
+        if (config.headerLine4) {
+          doc.text(config.headerLine4.toUpperCase(), centerX, logoMarginTop + 20, { align: 'center' });
+        }
         
         // Fecha generación
         const fechaHora = new Date().toLocaleString('es-ES');
         doc.setFontSize(7);
         doc.text(`Generado: ${fechaHora}`, pageWidth - margin - 2, logoMarginTop + 5, { align: 'right' });
         
-        // Tabla (diseño idéntico al HTML)
+        // Tabla
         const headers = [
           'UBICACIÓN', 'CAMA', 'HC', 'PACIENTE', 'EDAD', 
           'INGRESO', 'DH', 'DIAGNÓSTICO', 'ADJUNTO', 'PLAN'
@@ -888,41 +917,85 @@
       const fileName = `pacientes_${new Date().toISOString().slice(0,10)}.pdf`;
       const message = `Lista de pacientes - ${config.headerLine2}`;
       
+      // Función para formatear los datos del paciente en el orden solicitado
+      function formatPatientData(p) {
+        return `
+Ubicación: ${p.location || '-'}
+Cama: ${p.bed || '-'}
+HC: ${p.record || '-'}
+Paciente: ${p.patient || '-'}
+Edad: ${p.age || '-'}
+Fecha de ingreso: ${p.admission || '-'}
+DH: ${p.dh || '-'}
+Diagnóstico: ${p.diagnosis || '-'}
+Adjunto: ${p.attachment || '-'}
+Plan: ${p.plan || '-'}
+------------------------------`;
+      }
+      
       switch(service) {
         case 'whatsapp':
-          // Para WhatsApp usamos el método de texto ya que no se pueden enviar archivos directamente
           let whatsappMsg = `*${config.headerLine1.toUpperCase()}*\n`;
           whatsappMsg += `*${config.headerLine2.toUpperCase()}*\n`;
-          whatsappMsg += `*${config.headerLine3.toUpperCase()}*\n\n`;
+          whatsappMsg += `*${config.headerLine3.toUpperCase()}*\n`;
+          if (config.headerLine4) {
+            whatsappMsg += `*${config.headerLine4.toUpperCase()}*\n\n`;
+          }
           whatsappMsg += `*REVISTA DE PACIENTES*\n\n`;
           
           patients.forEach((p, i) => {
-            whatsappMsg += `*${i+1}.* ${p.patient}\n`;
-            whatsappMsg += `📍 ${p.location} | 🛏 ${p.bed} | 📋 HC: ${p.record}\n`;
-            whatsappMsg += `📅 Ingreso: ${p.admission}\n`;
-            whatsappMsg += `🩺 Diagnóstico: ${p.diagnosis}\n\n`;
+            whatsappMsg += `*PACIENTE ${i+1}*\n`;
+            whatsappMsg += formatPatientData(p);
+            whatsappMsg += `\n\n`;
           });
           
-          whatsappMsg += `Total: ${patients.length} pacientes`;
+          whatsappMsg += `\n*Total pacientes: ${patients.length}*`;
           window.open(`https://wa.me/?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
           break;
           
         case 'telegram':
-          // Telegram necesita que el usuario adjunte manualmente el PDF
+          let telegramMsg = `${config.headerLine1.toUpperCase()}\n`;
+          telegramMsg += `${config.headerLine2.toUpperCase()}\n`;
+          telegramMsg += `${config.headerLine3.toUpperCase()}\n`;
+          if (config.headerLine4) {
+            telegramMsg += `${config.headerLine4.toUpperCase()}\n\n`;
+          }
+          telegramMsg += `REVISTA DE PACIENTES\n\n`;
+          
+          patients.forEach((p, i) => {
+            telegramMsg += `PACIENTE ${i+1}\n`;
+            telegramMsg += formatPatientData(p);
+            telegramMsg += `\n\n`;
+          });
+          
+          telegramMsg += `\nTotal pacientes: ${patients.length}`;
+          
+          // Descargar el PDF primero
           downloadFile(pdfUrl, fileName);
-          showNotification('Descarga el PDF y envíalo por Telegram', 'success');
-          window.open('https://t.me', '_blank');
+          
+          // Abrir Telegram con el mensaje formateado
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(pdfUrl)}&text=${encodeURIComponent(telegramMsg)}`, '_blank');
           break;
           
         case 'email':
-          // Correo electrónico con opción de adjuntar manualmente
           const subject = `Lista de Pacientes - ${config.headerLine2}`;
-          const body = `Adjunto encontrarás la lista de pacientes actualizada.\n\n${config.headerLine1}\n${config.headerLine2}\n${config.headerLine3}\n\nTotal pacientes: ${patients.length}`;
-          const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          downloadFile(pdfUrl, fileName);
-          setTimeout(() => {
-            window.location.href = mailtoLink;
-          }, 1000);
+          let body = `Adjunto encontrarás la lista de pacientes actualizada.\n\n`;
+          body += `${config.headerLine1}\n${config.headerLine2}\n${config.headerLine3}\n`;
+          if (config.headerLine4) {
+            body += `${config.headerLine4}\n\n`;
+          }
+          body += `DETALLE DE PACIENTES:\n\n`;
+          
+          patients.forEach((p, i) => {
+            body += `PACIENTE ${i+1}\n`;
+            body += formatPatientData(p);
+            body += `\n\n`;
+          });
+          
+          body += `\nTotal pacientes: ${patients.length}`;
+          
+          const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&attachment=${encodeURIComponent(pdfUrl)}`;
+          window.location.href = mailtoLink;
           break;
       }
     }
@@ -950,6 +1023,11 @@
 
     headerLine3.addEventListener('input', function() {
       config.headerLine3 = this.value;
+      saveConfig();
+    });
+
+    headerLine4.addEventListener('input', function() {
+      config.headerLine4 = this.value;
       saveConfig();
     });
 
