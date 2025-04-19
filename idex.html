@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Registro de Pacientes</title>
+
+  <!-- Librerías -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.30/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Estilos Modernos y Responsivos -->
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --secondary-color: #0056b3;
+      --background: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-color: #dee2e6;
+      --text-color: #212529;
+      --danger-color: #dc3545;
+      --success-color: #28a745;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+    }
+
+    .header-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #servicioNombreInput, #logoInput {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      width: 100%;
+    }
+
+    #logoInput {
+      padding: 0.5rem;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      background-color: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1 1 auto;
+      min-width: 150px;
+      max-width: 250px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background-color: #6c757d;
+    }
+
+    button.secondary:hover {
+      background-color: #5a6268;
+    }
+
+    button.danger {
+      background-color: var(--danger-color);
+    }
+
+    button.danger:hover {
+      background-color: #c82333;
+    }
+
+    button.success {
+      background-color: var(--success-color);
+    }
+
+    button.success:hover {
+      background-color: #218838;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--card-bg);
+      min-width: 800px;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:nth-child(even) {
+      background-color: rgba(0,0,0,0.02);
+    }
+
+    tr:hover {
+      background-color: rgba(0,123,255,0.05);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons button {
+      padding: 0.5rem;
+      min-width: auto;
+      font-size: 0.8rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+      
+      .actions {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .actions button {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .header-inputs {
+        padding: 0 1rem;
+      }
+      
+      form > div[style*="grid-column: span 2"] {
+        grid-column: span 1 !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 0.5rem;
+      }
+      
+      form {
+        padding: 1rem;
+      }
+      
+      th, td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .action-buttons button {
+        width: 100%;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .table-container, .table-container * {
+        visibility: visible;
+      }
+      .table-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .action-buttons {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Registro de Pacientes</h1>
+    
+    <div class="header-inputs">
+      <input type="text" id="servicioNombreInput" placeholder="Nombre del Servicio Médico" />
+      <input type="file" id="logoInput" accept="image/*" />
+    </div>
+
+    <form id="pacienteForm">
+      <div><label for="cama">Cama</label><input type="text" id="cama" required /></div>
+      <div><label for="paciente">Nombre y Cédula</label><input type="text" id="paciente" required /></div>
+      <div><label for="edad">Edad</label><input type="number" id="edad" required /></div>
+      <div><label for="fecha">Fecha y Hora Ingreso</label><input type="datetime-local" id="fecha" required /></div>
+      <div style="grid-column: span 2;"><label for="diagnostico">Diagnóstico</label><textarea id="diagnostico" required></textarea></div>
+      <div><label for="adjunto">Adjunto</label><input type="text" id="adjunto" required /></div>
+      <div style="grid-column: span 2;"><label for="plan">Plan</label><textarea id="plan" required></textarea></div>
+      <div><label for="hc">HC</label><input type="text" id="hc" required /></div>
+    </form>
+
+    <div class="actions">
+      <button id="agregarBtn" class="success">➕ Agregar Paciente</button>
+      <button id="pdfBtn">📄 Descargar PDF</button>
+      <button id="previewBtn" class="secondary">👁️ Previsualizar PDF</button>
+      <button id="excelBtn" class="success">📊 Exportar Excel</button>
+      <button id="whatsappBtn">💬 Compartir WhatsApp</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>CAMA</th>
+            <th>PACIENTE</th>
+            <th>EDAD</th>
+            <th>FI / DH</th>
+            <th>DIAGNÓSTICO</th>
+            <th>ADJUNTO</th>
+            <th>PLAN</th>
+            <th>HC</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    let logoBase64 = "";
+    let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+    let editIndex = null;
+
+    const form = document.getElementById("pacienteForm");
+    const tabla = document.getElementById("tablaBody");
+
+    // Formatear fecha actual como valor por defecto
+    document.addEventListener('DOMContentLoaded', function() {
+      const now = new Date();
+      const fechaInput = document.getElementById('fecha');
+      const offset = now.getTimezoneOffset();
+      now.setMinutes(now.getMinutes() - offset);
+      fechaInput.value = now.toISOString().slice(0, 16);
+    });
+
+    function renderizarTabla() {
+      tabla.innerHTML = "";
+      if (pacientes.length === 0) {
+        const row = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 9;
+        td.textContent = "No hay pacientes registrados";
+        td.style.textAlign = "center";
+        row.appendChild(td);
+        tabla.appendChild(row);
+        return;
+      }
+
+      pacientes.forEach((p, i) => {
+        const row = document.createElement("tr");
+        Object.values(p).forEach(val => {
+          const td = document.createElement("td");
+          td.textContent = val;
+          row.appendChild(td);
+        });
+        
+        const acciones = document.createElement("td");
+        acciones.innerHTML = `
+          <div class="action-buttons">
+            <button onclick="editarPaciente(${i})" class="secondary">✏️ Editar</button>
+            <button onclick="eliminarPaciente(${i})" class="danger">🗑️ Eliminar</button>
+          </div>
+        `;
+        row.appendChild(acciones);
+        tabla.appendChild(row);
+      });
+    }
+
+    function guardarPacientes() {
+      localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    }
+
+    function obtenerDatosForm() {
+      return {
+        cama: document.getElementById("cama").value,
+        paciente: document.getElementById("paciente").value,
+        edad: document.getElementById("edad").value,
+        fecha: formatDateTime(document.getElementById("fecha").value),
+        diagnostico: document.getElementById("diagnostico").value,
+        adjunto: document.getElementById("adjunto").value,
+        plan: document.getElementById("plan").value,
+        hc: document.getElementById("hc").value,
+      };
+    }
+
+    function formatDateTime(datetimeStr) {
+      if (!datetimeStr) return '';
+      const date = new Date(datetimeStr);
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    document.getElementById("logoInput").addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+      
+      // Validar tipo de imagen
+      if (!file.type.match('image.*')) {
+        alert("Por favor seleccione un archivo de imagen válido.");
+        return;
+      }
+      
+      // Validar tamaño (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert("La imagen no debe exceder los 2MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        logoBase64 = e.target.result;
+      };
+      reader.onerror = function() {
+        alert("Error al leer el archivo de imagen.");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("agregarBtn").addEventListener("click", () => {
+      if (!form.checkValidity()) {
+        alert("Por favor completa todos los campos requeridos.");
+        return form.reportValidity();
+      }
+      
+      const nuevo = obtenerDatosForm();
+      if (editIndex !== null) {
+        pacientes[editIndex] = nuevo;
+        editIndex = null;
+        document.getElementById("agregarBtn").textContent = "➕ Agregar Paciente";
+      } else {
+        pacientes.unshift(nuevo);
+      }
+      
+      guardarPacientes();
+      renderizarTabla();
+      form.reset();
+      
+      // Restablecer la fecha actual
+      const now = new Date();
+      const fechaInput = document.getElementById('fecha');
+      const offset = now.getTimezoneOffset();
+      now.setMinutes(now.getMinutes() - offset);
+      fechaInput.value = now.toISOString().slice(0, 16);
+    });
+
+    function editarPaciente(i) {
+      const p = pacientes[i];
+      document.getElementById("cama").value = p.cama;
+      document.getElementById("paciente").value = p.paciente;
+      document.getElementById("edad").value = p.edad;
+      
+      // Convertir fecha guardada a formato datetime-local
+      if (p.fecha) {
+        const dateParts = p.fecha.split(/[\s/,:]+/);
+        if (dateParts.length >= 5) {
+          const dateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${dateParts[3]}:${dateParts[4]}`;
+          document.getElementById("fecha").value = dateStr;
+        }
+      }
+      
+      document.getElementById("diagnostico").value = p.diagnostico;
+      document.getElementById("adjunto").value = p.adjunto;
+      document.getElementById("plan").value = p.plan;
+      document.getElementById("hc").value = p.hc;
+      
+      editIndex = i;
+      document.getElementById("agregarBtn").textContent = "💾 Guardar Cambios";
+      document.getElementById("cama").focus();
+      
+      // Scroll al formulario
+      form.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function eliminarPaciente(i) {
+      if (confirm("¿Está seguro que desea eliminar este paciente?")) {
+        pacientes.splice(i, 1);
+        guardarPacientes();
+        renderizarTabla();
+      }
+    }
+
+    document.getElementById("excelBtn").addEventListener("click", () => {
+      if (pacientes.length === 0) return alert("No hay pacientes para exportar.");
+      
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(pacientes);
+      XLSX.utils.book_append_sheet(wb, ws, "Pacientes");
+      
+      const nombreServicio = document.getElementById("servicioNombreInput").value || "revista";
+      const fileName = `revista_pacientes_${nombreServicio.replace(/\s+/g, '_')}.xlsx`;
+      
+      XLSX.writeFile(wb, fileName);
+    });
+
+    document.getElementById("whatsappBtn").addEventListener("click", () => {
+      if (pacientes.length === 0) return alert("No hay pacientes para compartir.");
+      
+      const nombreServicio = document.getElementById("servicioNombreInput").value || "Servicio Médico";
+      let msg = `*REVISTA DE PACIENTES - ${nombreServicio.toUpperCase()}*\n\n`;
+      
+      pacientes.forEach((p, i) => {
+        msg += `*${i+1}.* Cama: ${p.cama}\nPaciente: ${p.paciente}\nEdad: ${p.edad}\nFecha Ingreso: ${p.fecha}\nDiagnóstico: ${p.diagnostico}\nAdjunto: ${p.adjunto}\nPlan: ${p.plan}\nHC: ${p.hc}\n\n`;
+      });
+      
+      msg += `_Total pacientes: ${pacientes.length}_`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    });
+
+    function generarPDF(preview = false) {
+      if (pacientes.length === 0) return alert("No hay pacientes para generar PDF.");
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ 
+        orientation: "landscape",
+        unit: "mm"
+      });
+      
+      const nombreServicio = document.getElementById("servicioNombreInput").value || "";
+      const margin = 15;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Encabezado con logo y título
+      if (logoBase64) {
+        doc.addImage(logoBase64, "JPEG", margin, 10, 25, 25);
+      }
+      
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("REVISTA DE PACIENTES", pageWidth / 2, 20, { align: "center" });
+      
+      if (nombreServicio) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(nombreServicio.toUpperCase(), pageWidth / 2, 27, { align: "center" });
+      }
+      
+      // Fecha de generación
+      doc.setFontSize(10);
+      doc.text(`Generado: ${new Date().toLocaleString()}`, pageWidth - margin, 10, { align: "right" });
+      
+      // Tabla de pacientes
+      const headers = [
+        { header: "CAMA", dataKey: "cama" },
+        { header: "PACIENTE", dataKey: "paciente" },
+        { header: "EDAD", dataKey: "edad" },
+        { header: "FECHA INGRESO", dataKey: "fecha" },
+        { header: "DIAGNÓSTICO", dataKey: "diagnostico" },
+        { header: "ADJUNTO", dataKey: "adjunto" },
+        { header: "PLAN", dataKey: "plan" },
+        { header: "HC", dataKey: "hc" }
+      ];
+      
+      doc.autoTable({
+        head: [headers.map(h => h.header)],
+        body: pacientes.map(p => headers.map(h => p[h.dataKey] || '')),
+        startY: 35,
+        margin: { left: margin, right: margin },
+        styles: { 
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak'
+        },
+        headStyles: { 
+          fillColor: [0, 123, 255],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [240, 240, 240]
+        },
+        columnStyles: {
+          0: { cellWidth: 'auto' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 'auto' },
+          3: { cellWidth: 'auto' },
+          4: { cellWidth: 40 },
+          5: { cellWidth: 'auto' },
+          6: { cellWidth: 40 },
+          7: { cellWidth: 'auto' }
+        },
+        didDrawPage: function(data) {
+          // Pie de página
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text(`Página ${data.pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+        }
+      });
+      
+      if (preview) {
+        window.open(doc.output("bloburl"));
+      } else {
+        const fileName = `revista_pacientes_${nombreServicio.replace(/\s+/g, '_')}.pdf`;
+        doc.save(fileName);
+      }
+    }
+
+    document.getElementById("pdfBtn").addEventListener("click", () => generarPDF(false));
+    document.getElementById("previewBtn").addEventListener("click", () => generarPDF(true));
+
+    // Inicializar la tabla al cargar
+    renderizarTabla();
+  </script>
+</body>
+</html>
